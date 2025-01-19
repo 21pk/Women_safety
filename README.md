@@ -4,7 +4,7 @@ A Progressive Web App (PWA) for women's safety with emergency SOS and complaint 
 
 ## Live Demo
 
-Visit the app: [Women Safety App](https://pawankushwahh.github.io/Women_safety/)
+Visit the app: [Women Safety App](https://21pk.github.io/Women_safety/)
 
 To install on your phone:
 1. Open the link in Chrome (Android) or Safari (iOS)
@@ -13,8 +13,8 @@ To install on your phone:
 
 ## Features
 
-- One-tap Emergency SOS button
-- Direct emergency services calling
+- One-tap Emergency SOS button with 1090 helpline
+- Live location and audio sharing during emergency
 - Location tracking and sharing
 - Complaint filing system with audio recording
 - Offline support
@@ -22,7 +22,7 @@ To install on your phone:
 
 ## Installation Instructions for Users
 
-1. Open [https://pawankushwahh.github.io/Women_safety/](https://pawankushwahh.github.io/Women_safety/) in your mobile browser
+1. Open [https://21pk.github.io/Women_safety/](https://21pk.github.io/Women_safety/) in your mobile browser
 2. For Android:
    - You'll see a "Add to Home Screen" prompt
    - Click "Install" to add the app to your home screen
@@ -56,7 +56,7 @@ To install on your phone:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/pawankushwahh/Women_safety.git
+   git clone https://github.com/21pk/Women_safety.git
    ```
 2. Run a local server:
    ```bash
