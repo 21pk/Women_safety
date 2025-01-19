@@ -1,8 +1,11 @@
 :root {
-    --primary-color: #ff4081;
-    --emergency-color: #ff0000;
-    --background-color: #f5f5f5;
-    --text-color: #333;
+    --primary-color: #1a73e8;  /* Professional blue */
+    --emergency-color: #dc3545; /* Emergency red */
+    --background-color: #f8f9fa;
+    --text-color: #212529;
+    --border-color: #dee2e6;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
 }
 
 * {
@@ -15,13 +18,14 @@ html, body {
     height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    background-color: var(--background-color);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: var(--background-color);
     color: var(--text-color);
     position: relative;
+    line-height: 1.5;
 }
 
 .container {
@@ -52,7 +56,7 @@ body {
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
     transition: all 0.3s ease;
     animation: pulse 2s infinite;
     text-decoration: none;
@@ -63,68 +67,20 @@ body {
     position: relative;
 }
 
-.sos-icon {
-    font-size: 40px;
-    margin-bottom: 8px;
-}
-
-.sos-text {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.call-text {
-    font-size: 14px;
-    opacity: 0;
-    position: absolute;
-    bottom: 20px;
-    transition: opacity 0.3s ease;
-}
-
-.sos-button:hover .call-text {
-    opacity: 1;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 20px rgba(255, 0, 0, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-    }
-}
-
 .sos-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.5);
+    background-color: #c82333;
 }
 
-.complaint-section {
-    width: 100%;
-    padding: 20px;
+.location-status {
+    margin-top: 15px;
     text-align: center;
-}
-
-.complaint-button,
-.share-button {
-    background-color: #fff;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    padding: 12px 24px;
-    border-radius: 25px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin: 10px;
-}
-
-.complaint-button:hover,
-.share-button:hover {
-    background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .modal {
@@ -142,22 +98,27 @@ body {
 
 .modal-content {
     background-color: white;
-    margin: 15px auto;
-    padding: 20px;
+    margin: 20px auto;
+    padding: 25px;
     width: 90%;
     max-width: 500px;
-    border-radius: 8px;
+    border-radius: 12px;
     position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .close {
     position: absolute;
     right: 20px;
-    top: 10px;
+    top: 15px;
     font-size: 28px;
     cursor: pointer;
+    color: #666;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: var(--text-color);
 }
 
 .report-type-selector {
@@ -168,13 +129,14 @@ body {
 }
 
 .report-type-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border: 2px solid var(--primary-color);
-    border-radius: 20px;
+    border-radius: 25px;
     background: white;
     color: var(--primary-color);
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .report-type-btn.active {
@@ -184,7 +146,6 @@ body {
 
 .form-group {
     margin-bottom: 1.5rem;
-    width: 100%;
 }
 
 .form-group label {
@@ -192,23 +153,51 @@ body {
     align-items: center;
     margin-bottom: 0.5rem;
     font-weight: 500;
+    color: var(--text-color);
 }
 
 .form-group .icon {
     margin-right: 0.5rem;
     font-size: 1.2rem;
+    color: var(--primary-color);
 }
 
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background-color: white;
 }
 
-.checkbox-group input[type="checkbox"] {
-    width: 1.2rem;
-    height: 1.2rem;
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #1557b0;
+    transform: translateY(-1px);
 }
 
 .record-button {
@@ -221,81 +210,42 @@ body {
     background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.record-button:hover {
-    background-color: #d81b60;
+    transition: all 0.3s;
+    font-weight: 500;
 }
 
 .record-button.recording {
-    background-color: #dc3545;
+    background-color: var(--emergency-color);
     animation: pulse 1s infinite;
 }
 
 #audioPreview {
     margin-top: 1rem;
     width: 100%;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
 }
 
 #audioPreview audio {
     width: 100%;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 64, 129, 0.2);
-}
-
-.form-group textarea {
-    min-height: 100px;
-    max-height: 200px;
-    resize: vertical;
-}
-
-.submit-btn {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-}
-
-.location-status {
-    margin-top: 10px;
-    text-align: center;
-    color: #666;
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
 }
 
 @media screen and (max-height: 600px) {
-    .sos-button {
-        width: 150px;
-        height: 150px;
-        font-size: 20px;
-    }
-
-    .sos-icon {
-        font-size: 32px;
-    }
-
     .modal-content {
         margin: 10px auto;
     }
@@ -305,12 +255,9 @@ body {
     .container {
         padding: 10px;
     }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
+    
     .modal-content {
         padding: 15px;
+        margin: 10px;
     }
 }

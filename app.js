@@ -3,8 +3,12 @@ let currentPosition = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let audioBlob = null;
+let watchId = null;
 
-const locationStatus = document.getElementById('location-status');
+const locationStatus = document.createElement('div');
+locationStatus.className = 'location-status';
+document.querySelector('.sos-section').appendChild(locationStatus);
+
 const sosButton = document.getElementById('sosButton');
 const complaintBtn = document.getElementById('complaintBtn');
 const complaintModal = document.getElementById('complaintModal');
@@ -29,11 +33,10 @@ function initializeLocation() {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude
                 };
-                locationStatus.textContent = 'Location tracking active';
                 document.getElementById('location').value = `${currentPosition.latitude}, ${currentPosition.longitude}`;
             },
             error => {
-                locationStatus.textContent = 'Error getting location: ' + error.message;
+                console.error('Error getting location:', error);
             },
             {
                 enableHighAccuracy: true,
@@ -42,7 +45,7 @@ function initializeLocation() {
             }
         );
     } else {
-        locationStatus.textContent = 'Geolocation is not supported by your browser';
+        console.log('Geolocation is not supported by your browser');
     }
 }
 
@@ -121,10 +124,77 @@ async function handleComplaint(event) {
     }
 }
 
+// Location sharing functionality
+function startLocationSharing() {
+    if (!watchId) {
+        if ("geolocation" in navigator) {
+            locationStatus.textContent = "Getting your location...";
+            watchId = navigator.geolocation.watchPosition(
+                position => {
+                    currentPosition = position;
+                    const { latitude, longitude } = position.coords;
+                    locationStatus.innerHTML = `
+                        Location active<br>
+                        <small>Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}</small>
+                    `;
+                    // Create shareable location link
+                    const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    
+                    // Try to share the location if supported
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Emergency Location',
+                            text: 'I need help! Here is my location:',
+                            url: mapsUrl
+                        }).catch(err => {
+                            console.log('Share failed:', err);
+                            // Fallback: copy to clipboard
+                            navigator.clipboard.writeText(mapsUrl).then(() => {
+                                locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
+                            });
+                        });
+                    } else {
+                        // Fallback: copy to clipboard
+                        navigator.clipboard.writeText(mapsUrl).then(() => {
+                            locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
+                        });
+                    }
+                },
+                error => {
+                    locationStatus.textContent = "Unable to access location. Please enable location services.";
+                    console.error("Location error:", error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                }
+            );
+        } else {
+            locationStatus.textContent = "Location sharing is not supported on this device.";
+        }
+    }
+}
+
+function stopLocationSharing() {
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        locationStatus.textContent = "Location sharing stopped";
+    }
+}
+
 // Event Listeners
-sosButton.addEventListener('click', () => {
-    if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200]);
+sosButton.addEventListener('click', async function(e) {
+    e.preventDefault();
+    startLocationSharing();
+    
+    // Start emergency call
+    try {
+        await navigator.serviceWorker.ready;
+        window.location.href = 'tel:112';
+    } catch (err) {
+        console.error('Error making emergency call:', err);
     }
 });
 
