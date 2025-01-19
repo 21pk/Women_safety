@@ -1,13 +1,19 @@
 // Global variables
 let currentPosition = null;
+let watchId = null;
+let liveAudioStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
-let audioBlob = null;
-let watchId = null;
+let isEmergencyActive = false;
 
 const locationStatus = document.createElement('div');
 locationStatus.className = 'location-status';
 document.querySelector('.sos-section').appendChild(locationStatus);
+
+// Create audio status element
+const audioStatus = document.createElement('div');
+audioStatus.className = 'audio-status';
+document.querySelector('.sos-section').appendChild(audioStatus);
 
 const sosButton = document.getElementById('sosButton');
 const complaintBtn = document.getElementById('complaintBtn');
@@ -85,6 +91,115 @@ function stopRecording() {
     }
 }
 
+// Live audio sharing functionality
+async function startLiveAudio() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        liveAudioStream = stream;
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+                // Here you would typically send this chunk to your server
+                // For now, we'll just update the status
+                audioStatus.innerHTML = `
+                    Live Audio Active<br>
+                    <small>Recording in progress...</small>
+                `;
+            }
+        };
+
+        mediaRecorder.start(1000); // Collect data every second
+        audioStatus.innerHTML = 'Live Audio Started';
+    } catch (err) {
+        console.error('Error accessing microphone:', err);
+        audioStatus.innerHTML = 'Unable to access microphone';
+    }
+}
+
+function stopLiveAudio() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+    if (liveAudioStream) {
+        liveAudioStream.getTracks().forEach(track => track.stop());
+    }
+    audioStatus.innerHTML = 'Audio sharing stopped';
+    audioChunks = [];
+}
+
+// Location sharing functionality
+function startLocationSharing() {
+    if (!watchId) {
+        if ("geolocation" in navigator) {
+            locationStatus.textContent = "Getting your location...";
+            watchId = navigator.geolocation.watchPosition(
+                position => {
+                    currentPosition = position;
+                    const { latitude, longitude } = position.coords;
+                    locationStatus.innerHTML = `
+                        Location active<br>
+                        <small>Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}</small>
+                    `;
+                    const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Emergency Location',
+                            text: 'I need help! Here is my location:',
+                            url: mapsUrl
+                        }).catch(err => {
+                            console.log('Share failed:', err);
+                            navigator.clipboard.writeText(mapsUrl).then(() => {
+                                locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
+                            });
+                        });
+                    } else {
+                        navigator.clipboard.writeText(mapsUrl).then(() => {
+                            locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
+                        });
+                    }
+                },
+                error => {
+                    locationStatus.textContent = "Unable to access location. Please enable location services.";
+                    console.error("Location error:", error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                }
+            );
+        } else {
+            locationStatus.textContent = "Location sharing is not supported on this device.";
+        }
+    }
+}
+
+function stopLocationSharing() {
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        locationStatus.textContent = "Location sharing stopped";
+    }
+}
+
+// Handle emergency state
+function startEmergency() {
+    isEmergencyActive = true;
+    startLocationSharing();
+    startLiveAudio();
+    document.querySelector('.sos-button').classList.add('active');
+}
+
+function stopEmergency() {
+    isEmergencyActive = false;
+    stopLocationSharing();
+    stopLiveAudio();
+    document.querySelector('.sos-button').classList.remove('active');
+}
+
 // Handle complaint form submission
 async function handleComplaint(event) {
     event.preventDefault();
@@ -124,77 +239,20 @@ async function handleComplaint(event) {
     }
 }
 
-// Location sharing functionality
-function startLocationSharing() {
-    if (!watchId) {
-        if ("geolocation" in navigator) {
-            locationStatus.textContent = "Getting your location...";
-            watchId = navigator.geolocation.watchPosition(
-                position => {
-                    currentPosition = position;
-                    const { latitude, longitude } = position.coords;
-                    locationStatus.innerHTML = `
-                        Location active<br>
-                        <small>Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}</small>
-                    `;
-                    // Create shareable location link
-                    const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                    
-                    // Try to share the location if supported
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Emergency Location',
-                            text: 'I need help! Here is my location:',
-                            url: mapsUrl
-                        }).catch(err => {
-                            console.log('Share failed:', err);
-                            // Fallback: copy to clipboard
-                            navigator.clipboard.writeText(mapsUrl).then(() => {
-                                locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
-                            });
-                        });
-                    } else {
-                        // Fallback: copy to clipboard
-                        navigator.clipboard.writeText(mapsUrl).then(() => {
-                            locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
-                        });
-                    }
-                },
-                error => {
-                    locationStatus.textContent = "Unable to access location. Please enable location services.";
-                    console.error("Location error:", error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                }
-            );
-        } else {
-            locationStatus.textContent = "Location sharing is not supported on this device.";
-        }
-    }
-}
-
-function stopLocationSharing() {
-    if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        locationStatus.textContent = "Location sharing stopped";
-    }
-}
-
-// Event Listeners
+// SOS Button Event Listener
 sosButton.addEventListener('click', async function(e) {
     e.preventDefault();
-    startLocationSharing();
     
-    // Start emergency call
-    try {
-        await navigator.serviceWorker.ready;
-        window.location.href = 'tel:112';
-    } catch (err) {
-        console.error('Error making emergency call:', err);
+    if (!isEmergencyActive) {
+        startEmergency();
+        try {
+            await navigator.serviceWorker.ready;
+            window.location.href = 'tel:1090';
+        } catch (err) {
+            console.error('Error making emergency call:', err);
+        }
+    } else {
+        stopEmergency();
     }
 });
 
@@ -245,6 +303,31 @@ complaintForm.addEventListener('submit', handleComplaint);
 window.addEventListener('click', (event) => {
     if (event.target === complaintModal) {
         complaintModal.style.display = 'none';
+    }
+});
+
+// Complaint Form Location Handling
+const locationInput = document.getElementById('location');
+const useCurrentLocationBtn = document.createElement('button');
+useCurrentLocationBtn.type = 'button';
+useCurrentLocationBtn.className = 'use-location-btn';
+useCurrentLocationBtn.textContent = 'Use Current Location';
+locationInput.parentNode.insertBefore(useCurrentLocationBtn, locationInput.nextSibling);
+
+useCurrentLocationBtn.addEventListener('click', () => {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                locationInput.value = `${latitude}, ${longitude}`;
+            },
+            error => {
+                console.error("Location error:", error);
+                alert("Unable to get location. Please enter manually.");
+            }
+        );
+    } else {
+        alert("Location services not available. Please enter location manually.");
     }
 });
 

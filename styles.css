@@ -73,7 +73,13 @@ body {
     background-color: #c82333;
 }
 
-.location-status {
+.sos-button.active {
+    animation: emergency-pulse 1s infinite;
+    background-color: var(--emergency-color);
+}
+
+.location-status,
+.audio-status {
     margin-top: 15px;
     text-align: center;
     color: var(--text-color);
@@ -81,6 +87,23 @@ body {
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.use-location-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    margin: 8px 0;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.use-location-btn:hover {
+    background-color: #1557b0;
 }
 
 .modal {
@@ -92,7 +115,7 @@ body {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    overflow-y: auto;
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -241,6 +264,21 @@ body {
         box-shadow: 0 0 0 20px rgba(220, 53, 69, 0);
     }
     100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+@keyframes emergency-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(220, 53, 69, 0);
+    }
+    100% {
+        transform: scale(1);
         box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
     }
 }
