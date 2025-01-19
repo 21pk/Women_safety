@@ -1,0 +1,99 @@
+.density-boxes {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    margin: 20px 0;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.density-box {
+    flex: 1;
+    height: 200px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #ddd;
+}
+
+.vehicle-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80%;
+    overflow: hidden;
+}
+
+.vehicle {
+    position: absolute;
+    transition: left 3s linear;
+    width: 30px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.vehicle.car {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23333" d="M5,11L6.5,6.5H17.5L19,11M17.5,16A1.5,1.5 0 0,1 16,14.5A1.5,1.5 0 0,1 17.5,13A1.5,1.5 0 0,1 19,14.5A1.5,1.5 0 0,1 17.5,16M6.5,16A1.5,1.5 0 0,1 5,14.5A1.5,1.5 0 0,1 6.5,13A1.5,1.5 0 0,1 8,14.5A1.5,1.5 0 0,1 6.5,16M18.92,6C18.72,5.42 18.16,5 17.5,5H6.5C5.84,5 5.28,5.42 5.08,6L3,12V20A1,1 0 0,0 4,21H5A1,1 0 0,0 6,20V19H18V20A1,1 0 0,0 19,21H20A1,1 0 0,0 21,20V12L18.92,6Z"/></svg>');
+}
+
+.vehicle.bike {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23333" d="M19,16C19,16.5 18.8,17 18.5,17.4L16.7,15.6C16.9,15.3 17,14.9 17,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,17A2.5,2.5 0 0,0 16.7,15.6L18.5,17.4C18.2,17.8 17.7,18 17.2,18H15V19H17.2A3,3 0 0,0 20.2,17L21.8,18.6C21.9,18.7 22,18.8 22,19A1,1 0 0,1 21,20H3A1,1 0 0,1 2,19C2,18.8 2.1,18.7 2.2,18.6L3.8,17A3,3 0 0,0 6.8,19H9V18H6.8C6.3,18 5.8,17.8 5.5,17.4L7.3,15.6C7.7,16.4 8.5,17 9.5,17A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 7.3,13.4L5.5,11.6C5.8,11.2 6.3,11 6.8,11H9V10H6.8A3,3 0 0,0 3.8,12L2.2,10.4C2.1,10.3 2,10.2 2,10A1,1 0 0,1 3,9H21A1,1 0 0,1 22,10C22,10.2 21.9,10.3 21.8,10.4L20.2,12A3,3 0 0,0 17.2,10H15V11H17.2C17.7,11 18.2,11.2 18.5,11.6L16.7,13.4C16.3,12.6 15.5,12 14.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,17A2.5,2.5 0 0,0 16.7,15.6L18.5,17.4C18.2,17.8 17.7,18 17.2,18H15V19H17.2A3,3 0 0,0 20.2,17L21.8,18.6C21.9,18.7 22,18.8 22,19A1,1 0 0,1 21,20H3A1,1 0 0,1 2,19C2,18.8 2.1,18.7 2.2,18.6L3.8,17A3,3 0 0,0 6.8,19H9V18H6.8C6.3,18 5.8,17.8 5.5,17.4L7.3,15.6C7.7,16.4 8.5,17 9.5,17A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 7.3,13.4L5.5,11.6C5.8,11.2 6.3,11 6.8,11H9V10H6.8A3,3 0 0,0 3.8,12L2.2,10.4C2.1,10.3 2,10.2 2,10A1,1 0 0,1 3,9H21A1,1 0 0,1 22,10C22,10.2 21.9,10.3 21.8,10.4L20.2,12A3,3 0 0,0 17.2,10H15V11H17.2C17.7,11 18.2,11.2 18.5,11.6L16.7,13.4C16.3,12.6 15.5,12 14.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,17Z"/></svg>');
+    width: 20px;
+    height: 15px;
+}
+
+.density-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    right: 10px;
+    height: 10px;
+    background: #4CAF50;
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.timer {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+}
+
+.box-title {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.restart-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.restart-button:hover {
+    background: #1976D2;
+}
