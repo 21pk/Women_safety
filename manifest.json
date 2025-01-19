@@ -2,20 +2,20 @@
     "name": "Women Safety Emergency App",
     "short_name": "Safety App",
     "description": "Emergency SOS and complaint filing system for women's safety",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ff0000",
     "orientation": "portrait",
     "icons": [
         {
-            "src": "icons/icon-192x192.png",
+            "src": "./icons/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-512x512.png",
+            "src": "./icons/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
@@ -26,15 +26,15 @@
             "name": "SOS Emergency",
             "short_name": "SOS",
             "description": "Quickly trigger SOS alert",
-            "url": "/?action=sos",
-            "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+            "url": "./?action=sos",
+            "icons": [{ "src": "./icons/icon-192x192.png", "sizes": "192x192" }]
         },
         {
             "name": "File Complaint",
             "short_name": "Complaint",
             "description": "File a new complaint",
-            "url": "/?action=complaint",
-            "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+            "url": "./?action=complaint",
+            "icons": [{ "src": "./icons/icon-192x192.png", "sizes": "192x192" }]
         }
     ],
     "categories": ["safety", "emergency", "utilities"],
