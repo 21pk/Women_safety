@@ -5,15 +5,11 @@ let liveAudioStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let isEmergencyActive = false;
+let audioBlob = null;
 
-const locationStatus = document.createElement('div');
-locationStatus.className = 'location-status';
-document.querySelector('.sos-section').appendChild(locationStatus);
-
-// Create audio status element
-const audioStatus = document.createElement('div');
-audioStatus.className = 'audio-status';
-document.querySelector('.sos-section').appendChild(audioStatus);
+const locationStatusEl = document.getElementById('locationStatus');
+const audioStatusEl = document.getElementById('audioStatus');
+const callStatusEl = document.getElementById('callStatus');
 
 const sosButton = document.getElementById('sosButton');
 const complaintBtn = document.getElementById('complaintBtn');
@@ -101,20 +97,21 @@ async function startLiveAudio() {
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 audioChunks.push(event.data);
-                // Here you would typically send this chunk to your server
-                // For now, we'll just update the status
-                audioStatus.innerHTML = `
-                    Live Audio Active<br>
-                    <small>Recording in progress...</small>
-                `;
             }
         };
 
-        mediaRecorder.start(1000); // Collect data every second
-        audioStatus.innerHTML = 'Live Audio Started';
+        mediaRecorder.start(1000);
+        audioStatusEl.innerHTML = `
+            <i class="fas fa-microphone"></i>
+            <span>Audio: Active</span>
+        `;
+        audioStatusEl.classList.add('active');
     } catch (err) {
         console.error('Error accessing microphone:', err);
-        audioStatus.innerHTML = 'Unable to access microphone';
+        audioStatusEl.innerHTML = `
+            <i class="fas fa-microphone-slash"></i>
+            <span>Audio: Failed</span>
+        `;
     }
 }
 
@@ -125,7 +122,11 @@ function stopLiveAudio() {
     if (liveAudioStream) {
         liveAudioStream.getTracks().forEach(track => track.stop());
     }
-    audioStatus.innerHTML = 'Audio sharing stopped';
+    audioStatusEl.innerHTML = `
+        <i class="fas fa-microphone"></i>
+        <span>Audio: Stopped</span>
+    `;
+    audioStatusEl.classList.remove('active');
     audioChunks = [];
 }
 
@@ -133,15 +134,21 @@ function stopLiveAudio() {
 function startLocationSharing() {
     if (!watchId) {
         if ("geolocation" in navigator) {
-            locationStatus.textContent = "Getting your location...";
+            locationStatusEl.innerHTML = `
+                <i class="fas fa-location-dot"></i>
+                <span>Location: Getting...</span>
+            `;
+            
             watchId = navigator.geolocation.watchPosition(
                 position => {
                     currentPosition = position;
                     const { latitude, longitude } = position.coords;
-                    locationStatus.innerHTML = `
-                        Location active<br>
-                        <small>Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}</small>
+                    locationStatusEl.innerHTML = `
+                        <i class="fas fa-location-dot"></i>
+                        <span>Location: Active</span>
                     `;
+                    locationStatusEl.classList.add('active');
+                    
                     const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
                     
                     if (navigator.share) {
@@ -151,18 +158,17 @@ function startLocationSharing() {
                             url: mapsUrl
                         }).catch(err => {
                             console.log('Share failed:', err);
-                            navigator.clipboard.writeText(mapsUrl).then(() => {
-                                locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
-                            });
+                            navigator.clipboard.writeText(mapsUrl);
                         });
                     } else {
-                        navigator.clipboard.writeText(mapsUrl).then(() => {
-                            locationStatus.innerHTML += '<br><small>Location link copied to clipboard</small>';
-                        });
+                        navigator.clipboard.writeText(mapsUrl);
                     }
                 },
                 error => {
-                    locationStatus.textContent = "Unable to access location. Please enable location services.";
+                    locationStatusEl.innerHTML = `
+                        <i class="fas fa-location-slash"></i>
+                        <span>Location: Failed</span>
+                    `;
                     console.error("Location error:", error);
                 },
                 {
@@ -172,7 +178,10 @@ function startLocationSharing() {
                 }
             );
         } else {
-            locationStatus.textContent = "Location sharing is not supported on this device.";
+            locationStatusEl.innerHTML = `
+                <i class="fas fa-location-slash"></i>
+                <span>Location: Not supported</span>
+            `;
         }
     }
 }
@@ -181,23 +190,37 @@ function stopLocationSharing() {
     if (watchId) {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
-        locationStatus.textContent = "Location sharing stopped";
+        locationStatusEl.innerHTML = `
+            <i class="fas fa-location-dot"></i>
+            <span>Location: Stopped</span>
+        `;
+        locationStatusEl.classList.remove('active');
     }
 }
 
 // Handle emergency state
 function startEmergency() {
     isEmergencyActive = true;
+    document.querySelector('.sos-button').classList.add('active');
     startLocationSharing();
     startLiveAudio();
-    document.querySelector('.sos-button').classList.add('active');
+    callStatusEl.innerHTML = `
+        <i class="fas fa-phone"></i>
+        <span>Calling 1090...</span>
+    `;
+    callStatusEl.classList.add('active');
 }
 
 function stopEmergency() {
     isEmergencyActive = false;
+    document.querySelector('.sos-button').classList.remove('active');
     stopLocationSharing();
     stopLiveAudio();
-    document.querySelector('.sos-button').classList.remove('active');
+    callStatusEl.innerHTML = `
+        <i class="fas fa-phone"></i>
+        <span>Call: Ready</span>
+    `;
+    callStatusEl.classList.remove('active');
 }
 
 // Handle complaint form submission
@@ -328,6 +351,26 @@ useCurrentLocationBtn.addEventListener('click', () => {
         );
     } else {
         alert("Location services not available. Please enter location manually.");
+    }
+});
+
+// Share button functionality
+document.getElementById('shareBtn').addEventListener('click', async () => {
+    const shareData = {
+        title: 'Women Safety App',
+        text: 'Install our Women Safety Emergency App',
+        url: 'https://21pk.github.io/Women_safety/'
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(shareData.url);
+            alert('App link copied to clipboard!');
+        }
+    } catch (err) {
+        console.error('Error sharing:', err);
     }
 });
 

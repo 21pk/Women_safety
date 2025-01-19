@@ -6,6 +6,7 @@
     <title>Women Safety - Emergency SOS</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="theme-color" content="#ff0000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,21 +14,43 @@
 <body>
     <div class="container">
         <div class="sos-section">
-            <a href="tel:112" id="sosButton" class="sos-button">
-                <span class="sos-icon">⚠️</span>
-                <span class="sos-text">SOS EMERGENCY</span>
-                <span class="call-text">Calling 112...</span>
-            </a>
-            <p id="location-status" class="location-status"></p>
+            <button class="sos-button">
+                <i class="fas fa-exclamation-triangle sos-icon"></i>
+                <span class="sos-text">SOS</span>
+                <span class="call-text">Call 1090</span>
+            </button>
+            <div class="status-container">
+                <div class="status-item" id="locationStatus">
+                    <i class="fas fa-location-dot"></i>
+                    <span>Location: Waiting...</span>
+                </div>
+                <div class="status-item" id="audioStatus">
+                    <i class="fas fa-microphone"></i>
+                    <span>Audio: Waiting...</span>
+                </div>
+                <div class="status-item" id="callStatus">
+                    <i class="fas fa-phone"></i>
+                    <span>Call: Ready</span>
+                </div>
+            </div>
         </div>
         
-        <div class="complaint-section">
-            <button id="complaintBtn" class="complaint-button">
-                File a Complaint
+        <div class="action-buttons">
+            <button class="action-button" id="complaintBtn">
+                <i class="fas fa-file-alt"></i>
+                File Complaint
             </button>
-            <button id="shareBtn" class="share-button">
+            <button class="action-button" id="shareBtn">
+                <i class="fas fa-share-alt"></i>
                 Share App
             </button>
+        </div>
+
+        <div class="app-link">
+            <p>Install our app:</p>
+            <a href="https://21pk.github.io/Women_safety/" class="app-url">
+                https://21pk.github.io/Women_safety/
+            </a>
         </div>
     </div>
 
