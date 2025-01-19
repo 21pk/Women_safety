@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women Safety - Emergency SOS</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="theme-color" content="#ff0000">
+</head>
+<body>
+    <div class="container">
+        <div class="sos-section">
+            <a href="tel:112" id="sosButton" class="sos-button">
+                <span class="sos-icon">⚠️</span>
+                <span class="sos-text">SOS EMERGENCY</span>
+                <span class="call-text">Calling 112...</span>
+            </a>
+            <p id="location-status" class="location-status"></p>
+        </div>
+        
+        <div class="complaint-section">
+            <button id="complaintBtn" class="complaint-button">
+                File a Complaint
+            </button>
+            <button id="shareBtn" class="share-button">
+                Share App
+            </button>
+        </div>
+    </div>
+
+    <div id="complaintModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>File a Complaint</h2>
+            <div class="report-type-selector">
+                <button id="textReportBtn" class="report-type-btn active">Text Report</button>
+                <button id="audioReportBtn" class="report-type-btn">Audio Report</button>
+            </div>
+            <form id="complaintForm">
+                <div class="form-group">
+                    <label for="name">
+                        <span class="icon">👤</span>
+                        Full Name
+                    </label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact">
+                        <span class="icon">📞</span>
+                        Contact Number
+                    </label>
+                    <input type="tel" id="contact" name="contact" required>
+                </div>
+                <div class="form-group">
+                    <label for="incidentType">
+                        <span class="icon">⚠️</span>
+                        Type of Incident
+                    </label>
+                    <select id="incidentType" required>
+                        <option value="">Select incident type</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="stalking">Stalking</option>
+                        <option value="vehicle">Vehicle-related</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group vehicle-details" style="display: none;">
+                    <label for="vehicleNumber">
+                        <span class="icon">🚗</span>
+                        Vehicle Number
+                    </label>
+                    <input type="text" id="vehicleNumber" name="vehicleNumber">
+                </div>
+                <div class="form-group time-details">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="justHappened" name="justHappened" checked>
+                        <label for="justHappened">Just Happened</label>
+                    </div>
+                    <div id="timeRangeGroup" style="display: none;">
+                        <label for="timeRange">
+                            <span class="icon">⏰</span>
+                            Time Range
+                        </label>
+                        <select id="timeRange" name="timeRange">
+                            <option value="0-1">Last 1 hour</option>
+                            <option value="1-2">1-2 hours ago</option>
+                            <option value="2-3">2-3 hours ago</option>
+                            <option value="3-4">3-4 hours ago</option>
+                            <option value="4-5">4-5 hours ago</option>
+                            <option value="5-6">5-6 hours ago</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group text-report">
+                    <label for="description">
+                        <span class="icon">📝</span>
+                        Description
+                    </label>
+                    <textarea id="description" required></textarea>
+                </div>
+                <div class="form-group audio-report" style="display: none;">
+                    <button type="button" id="recordButton" class="record-button">
+                        <span class="icon">🎤</span>
+                        Start Recording
+                    </button>
+                    <div id="audioPreview" style="display: none;">
+                        <audio id="audioPlayer" controls></audio>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="location">
+                        <span class="icon">📍</span>
+                        Location
+                    </label>
+                    <input type="text" id="location" readonly>
+                </div>
+                <button type="submit" class="submit-btn">Submit Complaint</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(registration => console.log('ServiceWorker registered'))
+                .catch(err => console.log('ServiceWorker registration failed: ', err));
+        }
+    </script>
+</body>
+</html>
