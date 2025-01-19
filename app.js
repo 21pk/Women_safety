@@ -1,175 +1,157 @@
-// Global variables
-let currentPosition = null;
-let watchId = null;
-let liveAudioStream = null;
+// Global variables for emergency state
+let isEmergencyActive = false;
+let locationWatchId = null;
 let mediaRecorder = null;
 let audioChunks = [];
-let isEmergencyActive = false;
-let audioBlob = null;
+let emergencySocket = null; // For real-time data streaming to police server
 
-const locationStatusEl = document.getElementById('locationStatus');
-const audioStatusEl = document.getElementById('audioStatus');
-const callStatusEl = document.getElementById('callStatus');
-
-const sosButton = document.getElementById('sosButton');
+// DOM Elements
+const sosButton = document.querySelector('.sos-button');
 const complaintBtn = document.getElementById('complaintBtn');
 const complaintModal = document.getElementById('complaintModal');
 const closeBtn = document.querySelector('.close');
 const complaintForm = document.getElementById('complaintForm');
-const incidentTypeSelect = document.getElementById('incidentType');
-const vehicleDetailsDiv = document.querySelector('.vehicle-details');
-const justHappenedCheckbox = document.getElementById('justHappened');
-const timeRangeGroup = document.getElementById('timeRangeGroup');
+const locationStatus = document.getElementById('locationStatus');
+const audioStatus = document.getElementById('audioStatus');
+const callStatus = document.getElementById('callStatus');
 const textReportBtn = document.getElementById('textReportBtn');
 const audioReportBtn = document.getElementById('audioReportBtn');
-const recordButton = document.getElementById('recordButton');
-const audioPreview = document.getElementById('audioPreview');
-const audioPlayer = document.getElementById('audioPlayer');
+const incidentTypeSelect = document.getElementById('incidentType');
+const vehicleDetails = document.querySelector('.vehicle-details');
 
-// Initialize location tracking
-function initializeLocation() {
-    if ('geolocation' in navigator) {
-        navigator.geolocation.watchPosition(
-            position => {
-                currentPosition = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-                document.getElementById('location').value = `${currentPosition.latitude}, ${currentPosition.longitude}`;
-            },
-            error => {
-                console.error('Error getting location:', error);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
+// Initialize app
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing app...');
+
+    // Initialize event listeners
+    function initializeEventListeners() {
+        console.log('Initializing event listeners...');
+
+        // SOS Button - Main Emergency Feature
+        sosButton.addEventListener('click', function(e) {
+            console.log('SOS button clicked');
+            e.preventDefault();
+            handleEmergency();
+        });
+
+        // Complaint Button
+        complaintBtn.addEventListener('click', function() {
+            console.log('Complaint button clicked');
+            complaintModal.style.display = 'block';
+        });
+
+        // Close Modal Button
+        closeBtn.addEventListener('click', function() {
+            console.log('Close button clicked');
+            complaintModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === complaintModal) {
+                complaintModal.style.display = 'none';
             }
-        );
-    } else {
-        console.log('Geolocation is not supported by your browser');
+        });
+
+        // Report Type Buttons
+        textReportBtn.addEventListener('click', function() {
+            console.log('Text report selected');
+            switchReportType('text');
+        });
+
+        audioReportBtn.addEventListener('click', function() {
+            console.log('Audio report selected');
+            switchReportType('audio');
+        });
+
+        // Incident Type Selection
+        incidentTypeSelect.addEventListener('change', function() {
+            console.log('Incident type changed:', this.value);
+            vehicleDetails.style.display = this.value === 'vehicle' ? 'block' : 'none';
+        });
+
+        // Complaint Form Submission
+        complaintForm.addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            handleComplaintSubmission(e);
+        });
     }
-}
 
-// Audio recording functions
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-            audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl;
-            audioPreview.style.display = 'block';
-            recordButton.textContent = '🎤 Start Recording';
-            recordButton.classList.remove('recording');
-        };
-
-        mediaRecorder.start();
-        recordButton.textContent = '⏹️ Stop Recording';
-        recordButton.classList.add('recording');
-    } catch (err) {
-        console.error('Error accessing microphone:', err);
-        alert('Could not access microphone. Please check permissions.');
+    // Emergency Functions
+    async function handleEmergency() {
+        console.log('Handling emergency...');
+        if (!isEmergencyActive) {
+            startEmergency();
+        } else {
+            stopEmergency();
+        }
     }
-}
 
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    }
-}
-
-// Live audio sharing functionality
-async function startLiveAudio() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        liveAudioStream = stream;
-        mediaRecorder = new MediaRecorder(stream);
-        
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-                audioChunks.push(event.data);
-            }
-        };
-
-        mediaRecorder.start(1000);
-        audioStatusEl.innerHTML = `
-            <i class="fas fa-microphone"></i>
-            <span>Audio: Active</span>
-        `;
-        audioStatusEl.classList.add('active');
-    } catch (err) {
-        console.error('Error accessing microphone:', err);
-        audioStatusEl.innerHTML = `
-            <i class="fas fa-microphone-slash"></i>
-            <span>Audio: Failed</span>
-        `;
-    }
-}
-
-function stopLiveAudio() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    if (liveAudioStream) {
-        liveAudioStream.getTracks().forEach(track => track.stop());
-    }
-    audioStatusEl.innerHTML = `
-        <i class="fas fa-microphone"></i>
-        <span>Audio: Stopped</span>
-    `;
-    audioStatusEl.classList.remove('active');
-    audioChunks = [];
-}
-
-// Location sharing functionality
-function startLocationSharing() {
-    if (!watchId) {
-        if ("geolocation" in navigator) {
-            locationStatusEl.innerHTML = `
-                <i class="fas fa-location-dot"></i>
-                <span>Location: Getting...</span>
-            `;
+    async function startEmergency() {
+        try {
+            console.log('Starting emergency services...');
+            isEmergencyActive = true;
+            sosButton.classList.add('active');
             
-            watchId = navigator.geolocation.watchPosition(
-                position => {
-                    currentPosition = position;
-                    const { latitude, longitude } = position.coords;
-                    locationStatusEl.innerHTML = `
-                        <i class="fas fa-location-dot"></i>
-                        <span>Location: Active</span>
-                    `;
-                    locationStatusEl.classList.add('active');
+            // 1. Start Location Tracking
+            await startLocationTracking();
+            
+            // 2. Start Audio Recording
+            await startAudioRecording();
+            
+            // 3. Call Emergency Number
+            callEmergencyNumber();
+            
+            // Update UI
+            updateEmergencyStatus('active');
+        } catch (error) {
+            console.error('Emergency activation failed:', error);
+            alert('Failed to activate emergency services. Please call 1090 directly.');
+        }
+    }
+
+    function stopEmergency() {
+        console.log('Stopping emergency services...');
+        isEmergencyActive = false;
+        sosButton.classList.remove('active');
+        
+        // Stop all emergency services
+        stopLocationTracking();
+        stopAudioRecording();
+        emergencySocket.close();
+        
+        // Update UI
+        updateEmergencyStatus('inactive');
+    }
+
+    // Location Tracking
+    async function startLocationTracking() {
+        console.log('Starting location tracking...');
+        if (!navigator.geolocation) {
+            throw new Error('Geolocation not supported');
+        }
+
+        locationStatus.innerHTML = '<i class="fas fa-location-dot"></i><span>Activating location...</span>';
+        
+        try {
+            locationWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    console.log('Location updated:', position.coords);
+                    const locationData = {
+                        type: 'location',
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        timestamp: new Date().toISOString()
+                    };
                     
-                    const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                    
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Emergency Location',
-                            text: 'I need help! Here is my location:',
-                            url: mapsUrl
-                        }).catch(err => {
-                            console.log('Share failed:', err);
-                            navigator.clipboard.writeText(mapsUrl);
-                        });
-                    } else {
-                        navigator.clipboard.writeText(mapsUrl);
-                    }
+                    // Send location to police server
+                    emergencySocket.send(locationData);
+                    locationStatus.innerHTML = '<i class="fas fa-location-dot"></i><span>Location: Active</span>';
                 },
-                error => {
-                    locationStatusEl.innerHTML = `
-                        <i class="fas fa-location-slash"></i>
-                        <span>Location: Failed</span>
-                    `;
-                    console.error("Location error:", error);
+                (error) => {
+                    console.error('Location error:', error);
+                    locationStatus.innerHTML = '<i class="fas fa-location-slash"></i><span>Location failed</span>';
                 },
                 {
                     enableHighAccuracy: true,
@@ -177,204 +159,131 @@ function startLocationSharing() {
                     timeout: 5000
                 }
             );
-        } else {
-            locationStatusEl.innerHTML = `
-                <i class="fas fa-location-slash"></i>
-                <span>Location: Not supported</span>
-            `;
+        } catch (error) {
+            console.error('Location tracking failed:', error);
+            locationStatus.innerHTML = '<i class="fas fa-location-slash"></i><span>Location failed</span>';
+            throw error;
         }
     }
-}
 
-function stopLocationSharing() {
-    if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        locationStatusEl.innerHTML = `
-            <i class="fas fa-location-dot"></i>
-            <span>Location: Stopped</span>
-        `;
-        locationStatusEl.classList.remove('active');
-    }
-}
-
-// Handle emergency state
-function startEmergency() {
-    isEmergencyActive = true;
-    document.querySelector('.sos-button').classList.add('active');
-    startLocationSharing();
-    startLiveAudio();
-    callStatusEl.innerHTML = `
-        <i class="fas fa-phone"></i>
-        <span>Calling 1090...</span>
-    `;
-    callStatusEl.classList.add('active');
-}
-
-function stopEmergency() {
-    isEmergencyActive = false;
-    document.querySelector('.sos-button').classList.remove('active');
-    stopLocationSharing();
-    stopLiveAudio();
-    callStatusEl.innerHTML = `
-        <i class="fas fa-phone"></i>
-        <span>Call: Ready</span>
-    `;
-    callStatusEl.classList.remove('active');
-}
-
-// Handle complaint form submission
-async function handleComplaint(event) {
-    event.preventDefault();
-    
-    const formData = new FormData();
-    formData.append('name', document.getElementById('name').value);
-    formData.append('contact', document.getElementById('contact').value);
-    formData.append('incidentType', incidentTypeSelect.value);
-    formData.append('vehicleNumber', document.getElementById('vehicleNumber').value);
-    formData.append('justHappened', justHappenedCheckbox.checked);
-    formData.append('timeRange', document.getElementById('timeRange').value);
-    formData.append('description', document.getElementById('description').value);
-    formData.append('location', JSON.stringify(currentPosition));
-    formData.append('timestamp', new Date().toISOString());
-
-    if (audioBlob) {
-        formData.append('audio', audioBlob, 'complaint.wav');
+    function stopLocationTracking() {
+        console.log('Stopping location tracking...');
+        if (locationWatchId) {
+            navigator.geolocation.clearWatch(locationWatchId);
+            locationWatchId = null;
+        }
+        locationStatus.innerHTML = '<i class="fas fa-location-dot"></i><span>Location: Ready</span>';
     }
 
-    try {
-        // In a real application, you would send this to your backend
-        console.log('Complaint data:', Object.fromEntries(formData));
-        alert('Complaint submitted successfully!');
-        
-        // Reset form
-        complaintForm.reset();
-        complaintModal.style.display = 'none';
-        audioBlob = null;
-        audioPreview.style.display = 'none';
-        document.querySelector('.text-report').style.display = 'block';
-        document.querySelector('.audio-report').style.display = 'none';
-        textReportBtn.classList.add('active');
-        audioReportBtn.classList.remove('active');
-    } catch (error) {
-        console.error('Error submitting complaint:', error);
-        alert('Error submitting complaint. Please try again.');
-    }
-}
-
-// SOS Button Event Listener
-sosButton.addEventListener('click', async function(e) {
-    e.preventDefault();
-    
-    if (!isEmergencyActive) {
-        startEmergency();
+    // Audio Recording
+    async function startAudioRecording() {
+        console.log('Starting audio recording...');
         try {
-            await navigator.serviceWorker.ready;
-            window.location.href = 'tel:1090';
-        } catch (err) {
-            console.error('Error making emergency call:', err);
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                    console.log('Audio chunk recorded');
+                    // Send audio chunk to police server
+                    emergencySocket.send({
+                        type: 'audio',
+                        data: event.data,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            };
+            
+            mediaRecorder.start(1000);
+            audioStatus.innerHTML = '<i class="fas fa-microphone"></i><span>Audio: Active</span>';
+        } catch (error) {
+            console.error('Audio recording failed:', error);
+            audioStatus.innerHTML = '<i class="fas fa-microphone-slash"></i><span>Audio failed</span>';
+            throw error;
         }
-    } else {
-        stopEmergency();
     }
-});
 
-textReportBtn.addEventListener('click', () => {
-    textReportBtn.classList.add('active');
-    audioReportBtn.classList.remove('active');
-    document.querySelector('.text-report').style.display = 'block';
-    document.querySelector('.audio-report').style.display = 'none';
-});
-
-audioReportBtn.addEventListener('click', () => {
-    audioReportBtn.classList.add('active');
-    textReportBtn.classList.remove('active');
-    document.querySelector('.text-report').style.display = 'none';
-    document.querySelector('.audio-report').style.display = 'block';
-});
-
-recordButton.addEventListener('click', () => {
-    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-        startRecording();
-    } else {
-        stopRecording();
+    function stopAudioRecording() {
+        console.log('Stopping audio recording...');
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+        audioStatus.innerHTML = '<i class="fas fa-microphone"></i><span>Audio: Ready</span>';
     }
-});
 
-incidentTypeSelect.addEventListener('change', (e) => {
-    if (e.target.value === 'vehicle') {
-        vehicleDetailsDiv.style.display = 'block';
-    } else {
-        vehicleDetailsDiv.style.display = 'none';
+    // Emergency Call
+    function callEmergencyNumber() {
+        console.log('Initiating emergency call...');
+        callStatus.innerHTML = '<i class="fas fa-phone"></i><span>Calling 1090...</span>';
+        
+        // Initiate call to emergency number
+        window.location.href = 'tel:1090';
+        
+        // Update status after small delay to show call initiation
+        setTimeout(() => {
+            callStatus.innerHTML = '<i class="fas fa-phone"></i><span>Call: Connected</span>';
+        }, 1000);
     }
-});
 
-justHappenedCheckbox.addEventListener('change', (e) => {
-    timeRangeGroup.style.display = e.target.checked ? 'none' : 'block';
-});
-
-complaintBtn.addEventListener('click', () => {
-    complaintModal.style.display = 'block';
-});
-
-closeBtn.addEventListener('click', () => {
-    complaintModal.style.display = 'none';
-});
-
-complaintForm.addEventListener('submit', handleComplaint);
-
-window.addEventListener('click', (event) => {
-    if (event.target === complaintModal) {
-        complaintModal.style.display = 'none';
+    // Update Emergency Status UI
+    function updateEmergencyStatus(status) {
+        const statusContainer = document.querySelector('.status-container');
+        if (statusContainer) {
+            statusContainer.classList.toggle('active', status === 'active');
+        }
     }
-});
 
-// Complaint Form Location Handling
-const locationInput = document.getElementById('location');
-const useCurrentLocationBtn = document.createElement('button');
-useCurrentLocationBtn.type = 'button';
-useCurrentLocationBtn.className = 'use-location-btn';
-useCurrentLocationBtn.textContent = 'Use Current Location';
-locationInput.parentNode.insertBefore(useCurrentLocationBtn, locationInput.nextSibling);
+    // Complaint Functions
+    function switchReportType(type) {
+        console.log('Switching report type to:', type);
+        const textContent = document.querySelector('.text-content');
+        const audioContent = document.querySelector('.audio-content');
+        
+        textReportBtn.classList.toggle('active', type === 'text');
+        audioReportBtn.classList.toggle('active', type === 'audio');
+        
+        if (textContent && audioContent) {
+            textContent.style.display = type === 'text' ? 'block' : 'none';
+            audioContent.style.display = type === 'audio' ? 'block' : 'none';
+        }
+    }
 
-useCurrentLocationBtn.addEventListener('click', () => {
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                const { latitude, longitude } = position.coords;
-                locationInput.value = `${latitude}, ${longitude}`;
+    async function handleComplaintSubmission(event) {
+        event.preventDefault();
+        console.log('Handling complaint submission...');
+        
+        const formData = new FormData(complaintForm);
+        
+        try {
+            // In a real implementation, this would send to police server
+            console.log('Complaint data:', Object.fromEntries(formData));
+            alert('Complaint submitted successfully. The police will contact you shortly.');
+            complaintForm.reset();
+            complaintModal.style.display = 'none';
+        } catch (error) {
+            console.error('Complaint submission failed:', error);
+            alert('Failed to submit complaint. Please try again or contact 1090 directly.');
+        }
+    }
+
+    // Emergency Socket Setup (simulated)
+    function setupEmergencySocket() {
+        // In a real implementation, this would connect to police server
+        emergencySocket = {
+            send: (data) => {
+                console.log('Emergency data sent to police:', data);
             },
-            error => {
-                console.error("Location error:", error);
-                alert("Unable to get location. Please enter manually.");
+            close: () => {
+                console.log('Emergency connection closed');
             }
-        );
-    } else {
-        alert("Location services not available. Please enter location manually.");
+        };
     }
-});
 
-// Share button functionality
-document.getElementById('shareBtn').addEventListener('click', async () => {
-    const shareData = {
-        title: 'Women Safety App',
-        text: 'Install our Women Safety Emergency App',
-        url: 'https://21pk.github.io/Women_safety/'
-    };
-
-    try {
-        if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
-            await navigator.clipboard.writeText(shareData.url);
-            alert('App link copied to clipboard!');
-        }
-    } catch (err) {
-        console.error('Error sharing:', err);
-    }
-});
-
-// Initialize the app
-document.addEventListener('DOMContentLoaded', () => {
-    initializeLocation();
+    // Initialize the app
+    initializeEventListeners();
+    setupEmergencySocket();
+    console.log('App initialization complete');
 });
